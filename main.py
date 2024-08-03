@@ -4,16 +4,23 @@ from PyQt6.QtWidgets import (QWidget, QApplication, QPushButton, QLineEdit, QCom
                              QMessageBox)
 from PyQt6.QtGui import QAction, QIcon
 import sys
-import sqlite3
+import os
+import mysql.connector
 
 
 class DataBase:
-    def __init__(self, db_path="database.db"):
+    def __init__(self, host="localhost", user="root", password=os.getenv("MySQLPasswordRoot"), database="school"):
         self.connection = None
-        self.db_path = db_path
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
 
     def connect(self):
-        self.connection = sqlite3.connect(self.db_path)
+        self.connection = mysql.connector.connect(host=self.host,
+                                                  database=self.database,
+                                                  user=self.user,
+                                                  password=self.password)
         return self.connection
 
 
@@ -84,7 +91,9 @@ class MainWindow(QMainWindow):
 
     def load_data(self):
         conn = DataBase().connect()
-        result = conn.execute("SELECT * FROM students")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM students")
+        result = cur.fetchall()
         self.table.setRowCount(0)
 
         for row_index, row in enumerate(result):
@@ -169,7 +178,7 @@ class EditDialog(QDialog):
     def update_student(self):
         conn = DataBase().connect()
         cursor = conn.cursor()
-        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
+        cursor.execute("UPDATE students SET name = %s, course = %s, mobile = %s WHERE id = %s",
                        (self.name_line_edit.text().title(),
                         self.courses.currentText(),
                         self.mobile_line_edit.text(),
@@ -212,7 +221,7 @@ class DeleteDialog(QDialog):
 
         conn = DataBase().connect()
         cur = conn.cursor()
-        cur.execute("DELETE FROM students WHERE id = ?", (id_num, ))
+        cur.execute("DELETE FROM students WHERE id = %s", (id_num, ))
         conn.commit()
         cur.close()
         conn.close()
@@ -263,7 +272,7 @@ class InsertDialog(QDialog):
 
         conn = DataBase().connect()
         cur = conn.cursor()
-        cur.execute("INSERT INTO students(name, course, mobile) VALUES (?, ?, ?)",
+        cur.execute("INSERT INTO students(name, course, mobile) VALUES (%s, %s, %s)",
                     (name, course, mobile))
         conn.commit()
         cur.close()
