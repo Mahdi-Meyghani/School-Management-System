@@ -13,7 +13,7 @@ The Student Management System is a GUI application built in Python using PyQt6, 
 - **Status Bar**: Access edit and delete student features. The status bar displays when a row in the table is selected.
 
 ## Database
-The application uses an SQLite database as the backend to store student data in real-time.
+The application uses a MySQL database as the backend to store student data in real-time.
 
 ## Installation
 1. Clone the repository:
